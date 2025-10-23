@@ -1,0 +1,13 @@
+# version: '3.7'
+
+services:
+  lease-management-ui:
+    platform: linux/amd64
+    container_name: commercial-file-management-ui
+    image: 10.95.10.172:5000/commercial-file-management-ui:prod.1.0.1
+    build: .
+    ports:
+      - 3008:80
+    environment:
+      - "NODE_ENV=production"
+      

@@ -1,0 +1,12 @@
+# version: '3.7'
+
+services:
+  commercial-file-management-ui:
+    platform: linux/amd64
+    container_name: commercial-file-management-ui
+    image: 10.95.10.172:5000/commercial-file-management-ui:test
+    build: .
+    ports:
+      - 3008:80
+    environment:
+      - "NODE_ENV=production"
