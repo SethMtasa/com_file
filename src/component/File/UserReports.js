@@ -177,38 +177,66 @@ export default function UserReports() {
     };
 
     // Download file function
-    const downloadFile = async (fileId, fileName) => {
+    const handleDownloadFile = async (fileId, fileName, fileType) => {
+        const token = localStorage.getItem("token");
         try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8277/api/files/${fileId}/download`, {
+            const response = await axios.get(`http://localhost:8277/api/files/download/${fileId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
                 responseType: 'blob'
             });
 
-            // Create blob link to download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            // Get the file extension from the original file name or content type
+            const blob = new Blob([response.data], { type: fileType });
+            const url = window.URL.createObjectURL(blob);
+
+            // Get file extension from original filename or content type
+            let fileExtension = '.file';
+            if (fileName && fileName.includes('.')) {
+                fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+            } else {
+                // Fallback to determining extension from content type
+                const extensionMap = {
+                    'application/pdf': '.pdf',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+                    'application/msword': '.doc',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+                    'application/vnd.ms-excel': '.xls',
+                    'text/csv': '.csv',
+                    'text/plain': '.txt',
+                    'image/jpeg': '.jpg',
+                    'image/png': '.png',
+                    'image/gif': '.gif'
+                };
+                fileExtension = extensionMap[fileType] || '.file';
+            }
+
+            const downloadFileName = fileName && fileName.includes('.') ? fileName : `file${fileExtension}`;
+
+            // Create a temporary link and trigger download
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', fileName);
+            link.setAttribute('download', downloadFileName);
             document.body.appendChild(link);
             link.click();
+
+            // Clean up
             link.remove();
             window.URL.revokeObjectURL(url);
 
             toast({
-                title: 'Download Started',
-                description: `Downloading ${fileName}`,
+                title: 'Success',
+                description: 'File download started',
                 status: 'success',
-                duration: 3000,
+                duration: 2000,
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Download error:', error);
+            console.error('Error downloading file:', error);
             toast({
-                title: 'Download Failed',
-                description: 'Failed to download file',
+                title: 'Error',
+                description: 'Error downloading file',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -896,7 +924,7 @@ export default function UserReports() {
                                                         <MenuList>
                                                             <MenuItem
                                                                 icon={<FiDownload />}
-                                                                onClick={() => downloadFile(file.id, file.fileName)}
+                                                                onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                             >
                                                                 Download
                                                             </MenuItem>
@@ -1006,7 +1034,7 @@ export default function UserReports() {
                             </Button>
                         </HStack>
                     </ModalHeader>
-                    <ModalCloseButton />
+
                     <ModalBody maxH="70vh" overflowY="auto">
                         <TableContainer>
                             <Table variant="simple" size="sm">
@@ -1014,7 +1042,7 @@ export default function UserReports() {
                                     <Tr>
                                         <Th>File Name</Th>
                                         <Th>File Type</Th>
-                                        <Th>File Size</Th>
+
                                         <Th>Upload Date</Th>
                                         <Th>Expiry Date</Th>
                                         <Th>Region</Th>
@@ -1033,7 +1061,7 @@ export default function UserReports() {
                                                     {getFileTypeShort(file.fileType)}
                                                 </Badge>
                                             </Td>
-                                            <Td>{formatFileSize(file.fileSize)}</Td>
+
                                             <Td>{formatDate(file.uploadDate)}</Td>
                                             <Td>{formatDate(file.expiryDate)}</Td>
                                             <Td>{file.region?.regionName || 'N/A'}</Td>
@@ -1053,7 +1081,7 @@ export default function UserReports() {
                                                     size="sm"
                                                     colorScheme="blue"
                                                     leftIcon={<FiDownload />}
-                                                    onClick={() => downloadFile(file.id, file.fileName)}
+                                                    onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                 >
                                                     Download
                                                 </Button>
@@ -1120,7 +1148,234 @@ export default function UserReports() {
                 </ModalContent>
             </Modal>
 
-            {/* Note: Other modals (expired, expiring, notifications) remain similar but with user-specific data */}
+            {/* Expired Files Modal */}
+            <Modal isOpen={isExpiredModalOpen} onClose={onExpiredModalClose} size="6xl">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>
+                        <HStack justify="space-between" width="100%">
+                            <Text>{modalTitle} ({modalFiles.length})</Text>
+                            <Button size="sm" variant="ghost" onClick={onExpiredModalClose}>
+                                <FiX />
+                            </Button>
+                        </HStack>
+                    </ModalHeader>
+
+                    <ModalBody maxH="70vh" overflowY="auto">
+                        <TableContainer>
+                            <Table variant="simple" size="sm">
+                                <Thead bg="gray.50" position="sticky" top={0}>
+                                    <Tr>
+                                        <Th>File Name</Th>
+                                        <Th>File Type</Th>
+
+                                        <Th>Upload Date</Th>
+                                        <Th>Expiry Date</Th>
+                                        <Th>Region</Th>
+                                        <Th>Channel Partner</Th>
+                                        <Th>Ownership</Th>
+                                        <Th>Actions</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {modalFiles.map((file) => (
+                                        <Tr key={file.id} _hover={{ bg: 'gray.50' }}>
+                                            <Td fontWeight="medium">{file.fileName}</Td>
+                                            <Td>
+                                                <Badge colorScheme="blue">
+                                                    {getFileTypeShort(file.fileType)}
+                                                </Badge>
+                                            </Td>
+
+                                            <Td>{formatDate(file.uploadDate)}</Td>
+                                            <Td>{formatDate(file.expiryDate)}</Td>
+                                            <Td>{file.region?.regionName || 'N/A'}</Td>
+                                            <Td>{file.channelPartnerType?.typeName || 'N/A'}</Td>
+                                            <Td>
+                                                <Badge colorScheme={file.uploadedBy?.id === userId ? 'green' : 'purple'}>
+                                                    {file.uploadedBy?.id === userId ? 'My Upload' : 'Assigned to Me'}
+                                                </Badge>
+                                            </Td>
+                                            <Td>
+                                                <Button
+                                                    size="sm"
+                                                    colorScheme="blue"
+                                                    leftIcon={<FiDownload />}
+                                                    onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
+                                                >
+                                                    Download
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+                                    {modalFiles.length === 0 && (
+                                        <Tr>
+                                            <Td colSpan={9} textAlign="center" color="gray.500" py={8}>
+                                                No expired files found
+                                            </Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={onExpiredModalClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Expiring Files Modal */}
+            <Modal isOpen={isExpiringModalOpen} onClose={onExpiringModalClose} size="6xl">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>
+                        <HStack justify="space-between" width="100%">
+                            <Text>{modalTitle} ({modalFiles.length})</Text>
+                            <Button size="sm" variant="ghost" onClick={onExpiringModalClose}>
+                                <FiX />
+                            </Button>
+                        </HStack>
+                    </ModalHeader>
+
+                    <ModalBody maxH="70vh" overflowY="auto">
+                        <TableContainer>
+                            <Table variant="simple" size="sm">
+                                <Thead bg="gray.50" position="sticky" top={0}>
+                                    <Tr>
+                                        <Th>File Name</Th>
+                                        <Th>File Type</Th>
+
+                                        <Th>Upload Date</Th>
+                                        <Th>Expiry Date</Th>
+                                        <Th>Region</Th>
+                                        <Th>Channel Partner</Th>
+                                        <Th>Ownership</Th>
+                                        <Th>Actions</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {modalFiles.map((file) => (
+                                        <Tr key={file.id} _hover={{ bg: 'gray.50' }}>
+                                            <Td fontWeight="medium">{file.fileName}</Td>
+                                            <Td>
+                                                <Badge colorScheme="blue">
+                                                    {getFileTypeShort(file.fileType)}
+                                                </Badge>
+                                            </Td>
+
+                                            <Td>{formatDate(file.uploadDate)}</Td>
+                                            <Td>{formatDate(file.expiryDate)}</Td>
+                                            <Td>{file.region?.regionName || 'N/A'}</Td>
+                                            <Td>{file.channelPartnerType?.typeName || 'N/A'}</Td>
+                                            <Td>
+                                                <Badge colorScheme={file.uploadedBy?.id === userId ? 'green' : 'purple'}>
+                                                    {file.uploadedBy?.id === userId ? 'My Upload' : 'Assigned to Me'}
+                                                </Badge>
+                                            </Td>
+                                            <Td>
+                                                <Button
+                                                    size="sm"
+                                                    colorScheme="blue"
+                                                    leftIcon={<FiDownload />}
+                                                    onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
+                                                >
+                                                    Download
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+                                    {modalFiles.length === 0 && (
+                                        <Tr>
+                                            <Td colSpan={9} textAlign="center" color="gray.500" py={8}>
+                                                No expiring files found
+                                            </Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={onExpiringModalClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Notifications Modal */}
+            <Modal isOpen={isNotificationsModalOpen} onClose={onNotificationsModalClose} size="6xl">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>
+                        <HStack justify="space-between" width="100%">
+                            <Text>{modalTitle} ({modalNotifications.length})</Text>
+                            <Button size="sm" variant="ghost" onClick={onNotificationsModalClose}>
+                                <FiX />
+                            </Button>
+                        </HStack>
+                    </ModalHeader>
+
+                    <ModalBody maxH="70vh" overflowY="auto">
+                        <TableContainer>
+                            <Table variant="simple" size="sm">
+                                <Thead bg="gray.50" position="sticky" top={0}>
+                                    <Tr>
+                                        <Th>Title</Th>
+                                        <Th>Type</Th>
+                                        <Th>Status</Th>
+                                        <Th>File</Th>
+                                        <Th>Message</Th>
+
+                                        <Th>Sent Time</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {modalNotifications.map((notification) => (
+                                        <Tr key={notification.id} _hover={{ bg: 'gray.50' }}>
+                                            <Td fontWeight="medium">{notification.title}</Td>
+                                            <Td>
+                                                <Badge colorScheme="blue">
+                                                    {notification.notificationType}
+                                                </Badge>
+                                            </Td>
+                                            <Td>
+                                                <Badge colorScheme={getStatusColor(notification.status)}>
+                                                    {notification.status}
+                                                </Badge>
+                                            </Td>
+                                            <Td>{notification.file?.fileName || 'N/A'}</Td>
+                                            <Td>
+                                                <Text fontSize="sm" maxW="300px" isTruncated title={notification.message}>
+                                                    {notification.message}
+                                                </Text>
+                                            </Td>
+
+                                            <Td>{formatDate(notification.sentTime)}</Td>
+                                        </Tr>
+                                    ))}
+                                    {modalNotifications.length === 0 && (
+                                        <Tr>
+                                            <Td colSpan={7} textAlign="center" color="gray.500" py={8}>
+                                                No notifications found
+                                            </Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={onNotificationsModalClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
         </Box>
     );
 }

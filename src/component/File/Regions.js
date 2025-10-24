@@ -650,7 +650,7 @@ export default function Regions() {
                                 <MenuButton
                                     as={Button}
                                     leftIcon={<FiDownload />}
-                                    colorScheme="blue"
+                                    colorScheme="orange"
                                     borderRadius="xl"
                                     variant="outline"
                                 >
@@ -738,9 +738,7 @@ export default function Regions() {
                                                             <Text fontWeight="semibold" color="gray.800">
                                                                 {region.regionName}
                                                             </Text>
-                                                            <Text fontSize="xs" color="gray.500">
-                                                                ID: {region.id}
-                                                            </Text>
+
                                                         </VStack>
                                                     </HStack>
                                                 </Td>
@@ -931,7 +929,7 @@ export default function Regions() {
                         <Flex justify="flex-end" mb={4}>
                             <Button
                                 leftIcon={<FiDownload />}
-                                colorScheme="green"
+                                colorScheme="orange"
                                 size="sm"
                                 onClick={exportFilesToExcel}
                                 isDisabled={regionFiles.length === 0}
@@ -969,7 +967,7 @@ export default function Regions() {
                                         <Tr>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Name</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Type</Th>
-                                            <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Size</Th>
+
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Upload Date</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Uploaded By</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Assigned KAR</Th>
@@ -1001,9 +999,7 @@ export default function Regions() {
                                                             <Text fontWeight="medium" color="gray.800">
                                                                 {file.fileName}
                                                             </Text>
-                                                            <Text fontSize="xs" color="gray.500">
-                                                                ID: {file.id}
-                                                            </Text>
+
                                                         </VStack>
                                                     </HStack>
                                                 </Td>
@@ -1019,11 +1015,7 @@ export default function Regions() {
                                                         {getFileTypeShort(file.fileType)}
                                                     </Badge>
                                                 </Td>
-                                                <Td>
-                                                    <Text fontSize="sm" color="gray.600">
-                                                        {formatFileSize(file.fileSize)}
-                                                    </Text>
-                                                </Td>
+
                                                 <Td>
                                                     <Text fontSize="sm" color="gray.600">
                                                         {formatUploadDate(file.uploadDate)}

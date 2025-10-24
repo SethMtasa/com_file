@@ -19,7 +19,7 @@ import {
     MenuItem,
     MenuList,
     Image,
-    Avatar,
+
     AlertDialog,
     AlertDialogBody,
     AlertDialogFooter,
@@ -29,14 +29,12 @@ import {
     AlertIcon,
     Alert,
     Collapse,
-    Badge,
-    Divider
+
 } from '@chakra-ui/react';
 import {
     FiHome,
     FiMenu,
-    FiBell,
-    FiBarChart2,
+
     FiChevronDown,
     FiChevronRight,
     FiLogOut
@@ -46,7 +44,7 @@ import {
     useNavigate,
     useLocation
 } from "react-router-dom";
-import { BiSolidReport } from "react-icons/bi";
+
 import { TbSettingsCog } from "react-icons/tb";
 import { FaArchway } from "react-icons/fa6";
 import { GiContract } from "react-icons/gi";
@@ -83,28 +81,11 @@ const LinkItems = [
         ],
         role: ["ADMIN"],
     },
-    // {
-    //     name: 'Files',
-    //     icon: BiSolidReport,
-    //     submenu: [
-    //         { name: 'Manage', to: '/admin/files' },
-    //     ],
-    //     role: ["USER", "ADMIN"],
-    // },
-    //
+
     { name: 'Reports', icon: AiOutlineIssuesClose, to: '/admin/reports', role: [ "ADMIN"] },
     { name: 'Reports', icon: AiOutlineIssuesClose, to: '/user/user-reports', role: [ "USER"] },
 
-    // {
-    //     name: 'Reports',
-    //     icon: FiBarChart2,
-    //     submenu: [
-    //         { name: 'Overview', to: '/admin/reports' },
-    //         { name: 'Lease Reports', to: '/admin/reports/leases' },
-    //         // { name: 'Generate Report', to: '/admin/reports/generate' },
-    //     ],
-    //     role: ["ADMIN"]
-    // },
+
     {
         name: 'User Management',
         icon: TbSettingsCog,

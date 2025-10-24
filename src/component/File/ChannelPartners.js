@@ -26,7 +26,7 @@ import {
     Badge,
     HStack,
     Select,
-    Progress,
+
     Table,
     Thead,
     Tbody,
@@ -37,11 +37,6 @@ import {
     Center,
     Spinner,
     Tooltip,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
-    CloseButton,
     Menu,
     MenuButton,
     MenuList,
@@ -887,7 +882,7 @@ export default function ChannelPartners() {
                         <Flex justify="flex-end" mb={4}>
                             <Button
                                 leftIcon={<FiDownload />}
-                                colorScheme="green"
+                                colorScheme="orange"
                                 size="sm"
                                 onClick={exportFilesToExcel}
                                 isDisabled={partnerFiles.length === 0}
@@ -925,7 +920,7 @@ export default function ChannelPartners() {
                                         <Tr>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Name</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Type</Th>
-                                            <Th bg="gray.50" color="gray.600" fontWeight="semibold">File Size</Th>
+
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Upload Date</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Uploaded By</Th>
                                             <Th bg="gray.50" color="gray.600" fontWeight="semibold">Assigned KAR</Th>
@@ -957,9 +952,7 @@ export default function ChannelPartners() {
                                                             <Text fontWeight="medium" color="gray.800">
                                                                 {file.fileName}
                                                             </Text>
-                                                            <Text fontSize="xs" color="gray.500">
-                                                                ID: {file.id}
-                                                            </Text>
+
                                                         </VStack>
                                                     </HStack>
                                                 </Td>
@@ -975,11 +968,7 @@ export default function ChannelPartners() {
                                                         {getFileTypeShort(file.fileType)}
                                                     </Badge>
                                                 </Td>
-                                                <Td>
-                                                    <Text fontSize="sm" color="gray.600">
-                                                        {formatFileSize(file.fileSize)}
-                                                    </Text>
-                                                </Td>
+
                                                 <Td>
                                                     <Text fontSize="sm" color="gray.600">
                                                         {formatUploadDate(file.uploadDate)}

@@ -62,7 +62,7 @@ const Users = () => {
     const fetchUsers = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
-        axios.get('http://10.95.10.92:8277/users', {
+        axios.get('http://localhost:8277/users', {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -124,7 +124,7 @@ const Users = () => {
         const token = localStorage.getItem("token");
 
         try {
-            const response = await axios.post('http://10.95.10.92:8177/register', newUser, {
+            const response = await axios.post('http://localhost:8177/register', newUser, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -182,7 +182,7 @@ const Users = () => {
         };
 
         try {
-            const response = await axios.put(`http://10.95.10.92:8277/user/update/${currentUser.id}`, updatePayload, {
+            const response = await axios.put(`http://localhost:8277/user/update/${currentUser.id}`, updatePayload, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -229,7 +229,7 @@ const Users = () => {
         const token = localStorage.getItem("token");
 
         try {
-            const response = await axios.delete(`http://10.95.10.92:8277/user/delete/${userToDelete.id}`, {
+            const response = await axios.delete(`http://localhost:8277/user/delete/${userToDelete.id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`

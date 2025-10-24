@@ -160,38 +160,66 @@ export default function Reports() {
     };
 
     // Download file function
-    const downloadFile = async (fileId, fileName) => {
+    const handleDownloadFile = async (fileId, fileName, fileType) => {
+        const token = localStorage.getItem("token");
         try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8277/api/files/${fileId}/download`, {
+            const response = await axios.get(`http://localhost:8277/api/files/download/${fileId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
                 responseType: 'blob'
             });
 
-            // Create blob link to download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            // Get the file extension from the original file name or content type
+            const blob = new Blob([response.data], { type: fileType });
+            const url = window.URL.createObjectURL(blob);
+
+            // Get file extension from original filename or content type
+            let fileExtension = '.file';
+            if (fileName && fileName.includes('.')) {
+                fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+            } else {
+                // Fallback to determining extension from content type
+                const extensionMap = {
+                    'application/pdf': '.pdf',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+                    'application/msword': '.doc',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+                    'application/vnd.ms-excel': '.xls',
+                    'text/csv': '.csv',
+                    'text/plain': '.txt',
+                    'image/jpeg': '.jpg',
+                    'image/png': '.png',
+                    'image/gif': '.gif'
+                };
+                fileExtension = extensionMap[fileType] || '.file';
+            }
+
+            const downloadFileName = fileName && fileName.includes('.') ? fileName : `file${fileExtension}`;
+
+            // Create a temporary link and trigger download
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', fileName);
+            link.setAttribute('download', downloadFileName);
             document.body.appendChild(link);
             link.click();
+
+            // Clean up
             link.remove();
             window.URL.revokeObjectURL(url);
 
             toast({
-                title: 'Download Started',
-                description: `Downloading ${fileName}`,
+                title: 'Success',
+                description: 'File download started',
                 status: 'success',
-                duration: 3000,
+                duration: 2000,
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Download error:', error);
+            console.error('Error downloading file:', error);
             toast({
-                title: 'Download Failed',
-                description: 'Failed to download file',
+                title: 'Error',
+                description: 'Error downloading file',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -634,7 +662,7 @@ export default function Reports() {
                 <Flex justify="space-between" align="center">
                     <VStack align="start" spacing={2}>
                         <Heading size="lg" color="gray.800">Reports & Analytics</Heading>
-                        <Text color="gray.600">Comprehensive overview of file management system</Text>
+
                     </VStack>
 
                     <HStack spacing={4}>
@@ -651,7 +679,7 @@ export default function Reports() {
 
                         <Button
                             leftIcon={<FiDownload />}
-                            colorScheme="blue"
+                            colorScheme="orange"
                             onClick={onExportModalOpen}
                         >
                             Export Report
@@ -843,7 +871,7 @@ export default function Reports() {
                                         </Tr>
                                     </Thead>
                                     <Tbody>
-                                        {recentFiles.map((file) => (
+                                        {recentFiles.map((file) =>(
                                             <Tr key={file.id} _hover={{ bg: 'gray.50' }}>
                                                 <Td>
                                                     <Text fontWeight="medium" isTruncated maxW="150px">
@@ -868,7 +896,7 @@ export default function Reports() {
                                                         <MenuList>
                                                             <MenuItem
                                                                 icon={<FiDownload />}
-                                                                onClick={() => downloadFile(file.id, file.fileName)}
+                                                                onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                             >
                                                                 Download
                                                             </MenuItem>
@@ -978,7 +1006,7 @@ export default function Reports() {
                             </Button>
                         </HStack>
                     </ModalHeader>
-                    <ModalCloseButton />
+
                     <ModalBody maxH="70vh" overflowY="auto">
                         <TableContainer>
                             <Table variant="simple" size="sm">
@@ -986,7 +1014,7 @@ export default function Reports() {
                                     <Tr>
                                         <Th>File Name</Th>
                                         <Th>File Type</Th>
-                                        <Th>File Size</Th>
+
                                         <Th>Upload Date</Th>
                                         <Th>Expiry Date</Th>
                                         <Th>Region</Th>
@@ -1004,7 +1032,7 @@ export default function Reports() {
                                                     {getFileTypeShort(file.fileType)}
                                                 </Badge>
                                             </Td>
-                                            <Td>{formatFileSize(file.fileSize)}</Td>
+
                                             <Td>{formatDate(file.uploadDate)}</Td>
                                             <Td>{formatDate(file.expiryDate)}</Td>
                                             <Td>{file.region?.regionName || 'N/A'}</Td>
@@ -1019,7 +1047,7 @@ export default function Reports() {
                                                     size="sm"
                                                     colorScheme="blue"
                                                     leftIcon={<FiDownload />}
-                                                    onClick={() => downloadFile(file.id, file.fileName)}
+                                                    onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                 >
                                                     Download
                                                 </Button>
@@ -1038,7 +1066,7 @@ export default function Reports() {
                         </TableContainer>
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="blue" onClick={onFilesModalClose}>
+                        <Button colorScheme="orange" onClick={onFilesModalClose}>
                             Close
                         </Button>
                     </ModalFooter>
@@ -1057,7 +1085,7 @@ export default function Reports() {
                             </Button>
                         </HStack>
                     </ModalHeader>
-                    <ModalCloseButton />
+
                     <ModalBody maxH="70vh" overflowY="auto">
                         <TableContainer>
                             <Table variant="simple" size="sm">
@@ -1065,7 +1093,7 @@ export default function Reports() {
                                     <Tr>
                                         <Th>File Name</Th>
                                         <Th>File Type</Th>
-                                        <Th>File Size</Th>
+
                                         <Th>Upload Date</Th>
                                         <Th>Expiry Date</Th>
                                         <Th>Region</Th>
@@ -1088,7 +1116,7 @@ export default function Reports() {
                                                         {getFileTypeShort(file.fileType)}
                                                     </Badge>
                                                 </Td>
-                                                <Td>{formatFileSize(file.fileSize)}</Td>
+
                                                 <Td>{formatDate(file.uploadDate)}</Td>
                                                 <Td color="red.500" fontWeight="bold">
                                                     {formatDate(file.expiryDate)}
@@ -1105,7 +1133,7 @@ export default function Reports() {
                                                         size="sm"
                                                         colorScheme="blue"
                                                         leftIcon={<FiDownload />}
-                                                        onClick={() => downloadFile(file.id, file.fileName)}
+                                                        onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                     >
                                                         Download
                                                     </Button>
@@ -1144,7 +1172,7 @@ export default function Reports() {
                             </Button>
                         </HStack>
                     </ModalHeader>
-                    <ModalCloseButton />
+
                     <ModalBody maxH="70vh" overflowY="auto">
                         <TableContainer>
                             <Table variant="simple" size="sm">
@@ -1152,7 +1180,7 @@ export default function Reports() {
                                     <Tr>
                                         <Th>File Name</Th>
                                         <Th>File Type</Th>
-                                        <Th>File Size</Th>
+
                                         <Th>Upload Date</Th>
                                         <Th>Expiry Date</Th>
                                         <Th>Region</Th>
@@ -1175,7 +1203,7 @@ export default function Reports() {
                                                         {getFileTypeShort(file.fileType)}
                                                     </Badge>
                                                 </Td>
-                                                <Td>{formatFileSize(file.fileSize)}</Td>
+
                                                 <Td>{formatDate(file.uploadDate)}</Td>
                                                 <Td color="orange.500" fontWeight="bold">
                                                     {formatDate(file.expiryDate)}
@@ -1192,7 +1220,7 @@ export default function Reports() {
                                                         size="sm"
                                                         colorScheme="blue"
                                                         leftIcon={<FiDownload />}
-                                                        onClick={() => downloadFile(file.id, file.fileName)}
+                                                        onClick={() => handleDownloadFile(file.id, file.fileName, file.fileType)}
                                                     >
                                                         Download
                                                     </Button>
@@ -1231,7 +1259,7 @@ export default function Reports() {
                             </Button>
                         </HStack>
                     </ModalHeader>
-                    <ModalCloseButton />
+
                     <ModalBody maxH="70vh" overflowY="auto">
                         <TableContainer>
                             <Table variant="simple" size="sm">
@@ -1244,7 +1272,7 @@ export default function Reports() {
                                         <Th>Scheduled Time</Th>
                                         <Th>Sent Time</Th>
                                         <Th>File</Th>
-                                        <Th>Days Until Expiry</Th>
+
                                     </Tr>
                                 </Thead>
                                 <Tbody>
@@ -1267,13 +1295,7 @@ export default function Reports() {
                                             <Td>{formatDate(notification.scheduledTime)}</Td>
                                             <Td>{formatDate(notification.sentTime)}</Td>
                                             <Td>{notification.file?.fileName || 'N/A'}</Td>
-                                            <Td>
-                                                {notification.daysUntilExpiry ? (
-                                                    <Badge colorScheme={notification.daysUntilExpiry <= 7 ? 'red' : 'orange'}>
-                                                        {notification.daysUntilExpiry} days
-                                                    </Badge>
-                                                ) : 'N/A'}
-                                            </Td>
+
                                         </Tr>
                                     ))}
                                     {modalNotifications.length === 0 && (
@@ -1288,7 +1310,7 @@ export default function Reports() {
                         </TableContainer>
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="blue" onClick={onNotificationsModalClose}>
+                        <Button colorScheme="orange" onClick={onNotificationsModalClose}>
                             Close
                         </Button>
                     </ModalFooter>
@@ -1327,7 +1349,7 @@ export default function Reports() {
                             Cancel
                         </Button>
                         <Button
-                            colorScheme="blue"
+                            colorScheme="orange"
                             onClick={() => {
                                 if (exportType === 'excel') exportToExcel();
                                 else if (exportType === 'notifications') exportNotificationsToExcel();

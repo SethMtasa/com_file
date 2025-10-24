@@ -26,7 +26,7 @@ import {
     CardBody,
     Badge,
     HStack,
-    Progress,
+
     Tooltip,
     Table,
     Thead,
@@ -35,7 +35,7 @@ import {
     Th,
     Td,
     TableContainer,
-    TableCaption,
+
     Spinner,
     Center
 } from '@chakra-ui/react';
@@ -57,7 +57,7 @@ const Home = () => {
     const [channelPartnerTypes, setChannelPartnerTypes] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [userRole, setUserRole] = useState('');
+
     const [selectedFile, setSelectedFile] = useState(null);
 
     // Pagination state
@@ -595,7 +595,7 @@ const Home = () => {
                                     size="md"
                                     leftIcon={<FiFile />}
                                     borderRadius="xl"
-                                    bgGradient="linear(to-r, green.400, green.500)"
+                                    bgGradient="linear(to-r, orange.400, black)"
                                     color="white"
                                     _hover={{
                                         bgGradient: "linear(to-r, green.500, green.600)",
@@ -847,6 +847,7 @@ const Home = () => {
                                                     size="sm"
                                                     variant={currentPage === page ? "solid" : "ghost"}
                                                     colorScheme={currentPage === page ? "orange" : "gray"}
+
                                                     onClick={() => handlePageChange(page)}
                                                     minW="8"
                                                 >
@@ -885,7 +886,6 @@ const Home = () => {
                 </CardBody>
             </Card>
 
-            {/* The rest of your modals remain the same */}
             {/* Details Modal */}
             <Modal isOpen={isDetailsModalOpen} onClose={onDetailsModalClose} size="md">
                 <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
@@ -909,45 +909,50 @@ const Home = () => {
                     <ModalBody>
                         {modalDetails && (
                             <VStack spacing={3} align="stretch">
-                                {Object.entries(modalDetails).map(([key, value]) => {
-                                    if (value === null || value === '' || typeof value === 'object') return null;
+                                {Object.entries(modalDetails)
+                                    .filter(([key, value]) => {
+                                        // Filter out id field and other unwanted fields
+                                        if (key === 'id') return false;
+                                        if (value === null || value === '' || typeof value === 'object') return false;
+                                        return true;
+                                    })
+                                    .map(([key, value]) => {
+                                        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                        let icon = FiFileText;
 
-                                    const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                                    let icon = FiFileText;
+                                        if (key.includes('region') || key.includes('Region')) icon = FiGlobe;
+                                        if (key.includes('user') || key.includes('KAR') || key.includes('uploaded')) icon = FiUser;
+                                        if (key.includes('channel') || key.includes('partner')) icon = FiUsers;
 
-                                    if (key.includes('region') || key.includes('Region')) icon = FiGlobe;
-                                    if (key.includes('user') || key.includes('KAR') || key.includes('uploaded')) icon = FiUser;
-                                    if (key.includes('channel') || key.includes('partner')) icon = FiUsers;
-
-                                    return (
-                                        <Flex
-                                            key={key}
-                                            p={3}
-                                            bg="gray.50"
-                                            borderRadius="xl"
-                                            align="center"
-                                            transition="all 0.2s"
-                                            _hover={{ bg: "gray.100", transform: "translateX(4px)" }}
-                                        >
-                                            <Box
-                                                p={2}
-                                                bgGradient="linear(to-r, orange.100, purple.100)"
-                                                borderRadius="lg"
-                                                mr={3}
+                                        return (
+                                            <Flex
+                                                key={key}
+                                                p={3}
+                                                bg="gray.50"
+                                                borderRadius="xl"
+                                                align="center"
+                                                transition="all 0.2s"
+                                                _hover={{ bg: "gray.100", transform: "translateX(4px)" }}
                                             >
-                                                {React.createElement(icon, { color: "#9C27B0" })}
-                                            </Box>
-                                            <VStack align="start" spacing={0} flex={1}>
-                                                <Text fontSize="xs" color="gray.500" fontWeight="medium">
-                                                    {formattedKey}
-                                                </Text>
-                                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                                                    {String(value)}
-                                                </Text>
-                                            </VStack>
-                                        </Flex>
-                                    );
-                                })}
+                                                <Box
+                                                    p={2}
+                                                    bgGradient="linear(to-r, orange.100, purple.100)"
+                                                    borderRadius="lg"
+                                                    mr={3}
+                                                >
+                                                    {React.createElement(icon, { color: "#9C27B0" })}
+                                                </Box>
+                                                <VStack align="start" spacing={0} flex={1}>
+                                                    <Text fontSize="xs" color="gray.500" fontWeight="medium">
+                                                        {formattedKey}
+                                                    </Text>
+                                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                        {String(value)}
+                                                    </Text>
+                                                </VStack>
+                                            </Flex>
+                                        );
+                                    })}
                             </VStack>
                         )}
                     </ModalBody>
@@ -964,8 +969,6 @@ const Home = () => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            {/* Edit File Modal - Keep the same as before */}
             {/* Edit File Modal */}
             <Modal isOpen={isEditFileOpen} onClose={() => setIsEditFileOpen(false)} size="xl">
                 <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
